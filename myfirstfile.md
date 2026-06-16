@@ -1,2 +1,2 @@
-Hello World :O
-Goodbye World :U
+Hello World :D
+Goodbye World :D
