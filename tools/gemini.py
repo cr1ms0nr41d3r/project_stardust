@@ -54,17 +54,34 @@ def _get_client():
 #   until the model is happy to answer in plain words.
 # ---------------------------------------------------------------------------
 
+def _response_text(response) -> str:
+    """Pull spoken text out of a Gemini response without crashing on blocks."""
+    try:
+        text = response.text
+        if text:
+            return text
+    except Exception:
+        pass
+    try:
+        parts = response.candidates[0].content.parts or []
+        return "".join(getattr(p, "text", None) or "" for p in parts).strip()
+    except Exception:
+        return ""
+
+
 def ask_gemini_with_tools(
     message: str,
     personality: str,
     declarations: list,
     handlers: dict,
+    history: list | None = None,
 ) -> tuple[str, list[dict]]:
     """Ask Gemini, letting it call tools. Return (reply_text, ui_events).
 
     `declarations` are the tool descriptions Gemini may use; `handlers` maps a
     tool name to the Python function that actually performs it. Every performed
     tool produces a UI event, which we collect and return for the browser.
+    `history` is optional prior turns: [{"role": "user"|"model", "text": "..."}].
     """
     config = types.GenerateContentConfig(
         system_instruction=personality,
@@ -73,9 +90,15 @@ def ask_gemini_with_tools(
         tools=[types.Tool(function_declarations=declarations)] if declarations else None,
     )
 
-    # `contents` is the running transcript of the conversation. It starts with
-    # just the user's message and grows as the model calls tools.
-    contents = [types.Content(role="user", parts=[types.Part(text=message)])]
+    # `contents` is the running transcript. Recent history (if any) plus the
+    # new user line, then it grows as the model calls tools.
+    contents = []
+    for turn in history or []:
+        role = turn.get("role") or "user"
+        text = (turn.get("text") or "").strip()
+        if text and role in ("user", "model"):
+            contents.append(types.Content(role=role, parts=[types.Part(text=text)]))
+    contents.append(types.Content(role="user", parts=[types.Part(text=message)]))
     events: list[dict] = []
 
     client = _get_client()  # builds the client on first call (needs the key)
@@ -91,6 +114,8 @@ def ask_gemini_with_tools(
             break  # No tool requested -> the model is ready to speak.
 
         # Record the model's "please call these tools" turn in the transcript.
+        if not response.candidates:
+            break
         contents.append(response.candidates[0].content)
 
         # Run each requested tool and add its result back to the transcript.
@@ -127,5 +152,5 @@ def ask_gemini_with_tools(
             model=MODEL, contents=contents, config=config
         )
 
-    reply = response.text or ""
+    reply = _response_text(response) or "No response from subspace comms."
     return reply, events

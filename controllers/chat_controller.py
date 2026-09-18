@@ -5,9 +5,19 @@ from tools.gemini import ask_gemini_with_tools
 from tools.knowledge import build_planet_context
 from tools.ship_tools import declarations_for, handlers_for
 
-# A "system instruction" is a standing message the LLM reads before every
-# conversation -- it sets the bot's tone and rules. We keep ours in the
-# *_personality.md files so a character can be edited without touching code.
+# Resolve files from the project root so the server works no matter which
+# directory uvicorn was started from.
+_ROOT = Path(__file__).resolve().parent.parent
+
+# Incoming aliases from older REST routes / docs examples.
+_ALIASES = {
+    "kirk": "kirk",
+    "captain": "kirk",
+    "spock": "spock",
+    "scribe": "spock",
+    "ship": "ship",
+    "computer": "ship",
+}
 
 # ---------------------------------------------------------------------------
 # The CAST of the game. Each crew member maps to:
@@ -15,23 +25,8 @@ from tools.ship_tools import declarations_for, handlers_for
 #   - the list of tools (from tools/ship_tools.py) they are allowed to use.
 #
 # Design rule:
-#   - Kirk and Spock are people you CONVERSE with. They have NO tools -- they
-#     can only talk (e.g. describe the ship's functionality). An empty tool
-#     list means Gemini can only reply in words.
-#   - The ship's Computer is what actually OPERATES the ship, so it gets every
-#     action: raise shields, fire on enemies, scan, go to warp, sound alerts.
-# ---------------------------------------------------------------------------
-#
-# Each crew member now also has a "knowledge" file: an away-mission LENS that
-# gives them a distinct skill/knowledge angle for the Stage 2 planet survey
-# (Kirk weighs risk to people, Spock analyses the science, the Computer reports
-# raw data). This is layered on top of their personality for that stage.
-# ---------------------------------------------------------------------------
-#
-# Every crew member also gets the `lookup_exoplanet` tool so, during the Stage 2
-# survey, they can query NASA's real Exoplanet Archive live to fetch precise
-# figures for a world (see tools/nasa.py). This is the crew's "access to the
-# API" -- the same live source the rest of Stage 2 uses.
+#   - Kirk and Spock converse. They only get the NASA lookup tool.
+#   - The ship's Computer operates the ship, so it gets every action.
 # ---------------------------------------------------------------------------
 CAST: dict[str, dict] = {
     "kirk": {
@@ -60,8 +55,27 @@ CAST: dict[str, dict] = {
 }
 
 
+def normalize_character(name: str | None) -> str | None:
+    """Map display / legacy names onto a CAST key, or None if unknown."""
+    if not name:
+        return None
+    return _ALIASES.get(str(name).strip().lower())
+
+
+def _read_prompt(rel: str) -> str:
+    """Read a markdown prompt, dropping the student-facing header above ---."""
+    text = (_ROOT / rel).read_text(encoding="utf-8")
+    marker = "\n---\n"
+    if marker in text:
+        text = text.split(marker, 1)[1]
+    return text.strip()
+
+
 def run_agent_turn(
-    character: str, message: str, planet: str | None = None
+    character: str,
+    message: str,
+    planet: str | None = None,
+    history: list | None = None,
 ) -> tuple[str, list[dict]]:
     """The core game step: talk to one crew member and see what they do.
 
@@ -69,60 +83,47 @@ def run_agent_turn(
     (or None outside Stage 2). When given, we inject that planet's facts so the
     crew can answer in-context -- without revealing which world is the answer.
 
-    Returns (spoken_reply, ui_events). `ui_events` is the list of things the
-    browser should animate (empty if the character only talked).
+    `history` is an optional list of prior {role, text} turns for this crew
+    member on this connection (short-term memory only).
+
+    Returns (spoken_reply, ui_events).
     """
-    profile = CAST.get(character)
+    key = normalize_character(character) or (character or "").strip().lower()
+    profile = CAST.get(key)
     if profile is None:
-        # Unknown crew member -> a friendly error instead of a crash.
         return (f"There is no crew member called '{character}' aboard.", [])
 
-    # Build the system instruction in three layers:
-    #   personality  -> WHO they are (voice/tone)          [always]
-    #   knowledge    -> their away-mission skill lens        [always]
-    #   planet_ctx   -> facts about the planet being viewed  [Stage 2 only]
-    personality = Path(profile["personality"]).read_text(encoding="utf-8")
-    lens = Path(profile["knowledge"]).read_text(encoding="utf-8")
-    planet_ctx = build_planet_context(planet, character)
+    personality = _read_prompt(profile["personality"])
+    lens = _read_prompt(profile["knowledge"]) if profile.get("knowledge") else ""
+    planet_ctx = build_planet_context(planet, key)
     system_instruction = f"{personality}\n\n{lens}{planet_ctx}"
 
-    # Hand this character ONLY their own tools, then let Gemini decide whether
-    # to use one. (See tools/gemini.py for the ask -> act -> narrate loop.)
     reply, events = ask_gemini_with_tools(
         message=message,
         personality=system_instruction,
         declarations=declarations_for(profile["tools"]),
         handlers=handlers_for(profile["tools"]),
+        history=history,
     )
     return reply, events
 
 
-# ---------------------------------------------------------------------------
-# The original plain-text endpoints still work (handy for /docs testing). They
-# just ignore the UI events and return the spoken reply as before.
-# ---------------------------------------------------------------------------
-
 def speak_to_scribe(req: ChatRequest) -> ChatResponse:
-    """Take a validated request, ask the LLM, return a validated response."""
-    reply, _events = run_agent_turn("scribe", req.message)
+    reply, _events = run_agent_turn("spock", req.message)
     return ChatResponse(reply=reply)
 
 def speak_to_captain(req: ChatRequest) -> ChatResponse:
-    """Take a validated request, ask the LLM, return a validated response."""
-    reply, _events = run_agent_turn("captain", req.message)
+    reply, _events = run_agent_turn("kirk", req.message)
     return ChatResponse(reply=reply)
 
 def speak_to_ship(req: ChatRequest) -> ChatResponse:
-    """Take a validated request, ask the LLM, return a validated response."""
     reply, _events = run_agent_turn("ship", req.message)
     return ChatResponse(reply=reply)
 
 def speak_to_navigator(req: ChatRequest) -> ChatResponse:
-    """Take a validated request, ask the LLM, return a validated response."""
     reply, _events = run_agent_turn("navigator", req.message)
     return ChatResponse(reply=reply)
 
 def speak_to_chef(req: ChatRequest) -> ChatResponse:
-    """Take a validated request, ask the LLM, return a validated response."""
     reply, _events = run_agent_turn("chef", req.message)
     return ChatResponse(reply=reply)

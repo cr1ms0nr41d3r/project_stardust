@@ -142,6 +142,7 @@ function calibrate(container, config, onWin) {
   let pos = 0; // 0..100
   let dir = 1;
   let rafId = null;
+  let retryTimer = null;
   let last = null;
   let stopped = false;
 
@@ -181,7 +182,8 @@ function calibrate(container, config, onWin) {
       feedback.textContent = "✘ Missed the band. Recalibrating…";
       stopBtn.textContent = "■ Stop";
       // Retry: resume sliding after a beat.
-      setTimeout(() => {
+      clearTimeout(retryTimer);
+      retryTimer = setTimeout(() => {
         stopped = false;
         last = null;
         rafId = requestAnimationFrame(frame);
@@ -192,6 +194,7 @@ function calibrate(container, config, onWin) {
   return {
     destroy() {
       stopped = true;
+      clearTimeout(retryTimer);
       cancelAnimationFrame(rafId);
     },
   };
