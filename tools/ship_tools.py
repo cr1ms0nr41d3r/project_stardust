@@ -23,6 +23,8 @@
 
 from google.genai import types
 
+from tools.nasa import lookup_exoplanet
+
 
 # ---------------------------------------------------------------------------
 # The HANDLERS.
@@ -214,6 +216,24 @@ TOOLS: dict[str, dict] = {
                         description="True to sound red alert, False to stand down.",
                     ),
                 },
+            ),
+        ),
+    },
+    "lookup_exoplanet": {
+        "handler": lookup_exoplanet,
+        "declaration": types.FunctionDeclaration(
+            name="lookup_exoplanet",
+            description="Look up a confirmed exoplanet in the NASA Exoplanet "
+            "Archive by name. Use when the crew wants live figures for a world.",
+            parameters=types.Schema(
+                type=types.Type.OBJECT,
+                properties={
+                    "name": types.Schema(
+                        type=types.Type.STRING,
+                        description="Planet name, e.g. 'TRAPPIST-1 e'.",
+                    ),
+                },
+                required=["name"],
             ),
         ),
     },

@@ -201,8 +201,11 @@ export function create(ctx) {
         appendChat("System", "Crew comms offline. Use the fact and mini-game instead.", "system");
         return;
       }
+      if (!chat.send(active, text, openPlanet)) {
+        appendChat("System", "Awaiting the last reply…", "system");
+        return;
+      }
       appendChat("You", text, "you");
-      chat.send(active, text, openPlanet);
       inputEl.value = "";
     }
 

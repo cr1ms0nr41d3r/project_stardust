@@ -72,9 +72,9 @@ EXOPLANETS: list[dict] = [
             "pattern": ["💧", "🌱", "🌡️", "🧲"],
         }},
         "crewNotes": {
-            "captain": "Small, steady, room to breathe. This one feels like it could be home.",
-            "scribe": "Nearly Earth-radius and within the liquid-water zone; the most promising of the six.",
-            "computer": "Radius 0.92 Earth radii. Equilibrium temperature 249.7 Kelvin. Within habitable zone.",
+            "kirk": "Small, steady, room to breathe. This one feels like it could be home.",
+            "spock": "Nearly Earth-radius and within the liquid-water zone; the most promising of the six.",
+            "ship": "Radius 0.92 Earth radii. Equilibrium temperature 249.7 Kelvin. Within habitable zone.",
         },
     },
     {
@@ -95,9 +95,9 @@ EXOPLANETS: list[dict] = [
             ],
         }},
         "crewNotes": {
-            "captain": "Looks like Earth's bigger cousin from orbit — but bigger isn't always better.",
-            "scribe": "Its size makes a solid surface uncertain; it may lack the rocky ground colonists require.",
-            "computer": "Radius 1.63 Earth radii. Insolation 1.1 times Earth. Composition uncertain.",
+            "kirk": "Looks like Earth's bigger cousin from orbit — but bigger isn't always better.",
+            "spock": "Its size makes a solid surface uncertain; it may lack the rocky ground colonists require.",
+            "ship": "Radius 1.63 Earth radii. Insolation 1.1 times Earth. Composition uncertain.",
         },
     },
     {
@@ -112,9 +112,9 @@ EXOPLANETS: list[dict] = [
             "targetMin": 42, "targetMax": 60, "speed": 0.2,
         }},
         "crewNotes": {
-            "captain": "A world of fire. Nothing's setting up a colony on molten rock.",
-            "scribe": "Surface temperatures approach 2000 Kelvin; liquid water is impossible.",
-            "computer": "Equilibrium temperature 1958 Kelvin. Orbital period 0.74 days. Molten surface probable.",
+            "kirk": "A world of fire. Nothing's setting up a colony on molten rock.",
+            "spock": "Surface temperatures approach 2000 Kelvin; liquid water is impossible.",
+            "ship": "Equilibrium temperature 1958 Kelvin. Orbital period 0.74 days. Molten surface probable.",
         },
     },
     {
@@ -129,9 +129,9 @@ EXOPLANETS: list[dict] = [
             "targetMin": 44, "targetMax": 61, "speed": 0.17,
         }},
         "crewNotes": {
-            "captain": "You can't stand on a storm. There's no ground here at all.",
-            "scribe": "A gas giant with no solid surface; habitation is not possible.",
-            "computer": "Radius 15.6 Earth radii. Classification: gas giant. Atmospheric escape detected.",
+            "kirk": "You can't stand on a storm. There's no ground here at all.",
+            "spock": "A gas giant with no solid surface; habitation is not possible.",
+            "ship": "Radius 15.6 Earth radii. Classification: gas giant. Atmospheric escape detected.",
         },
     },
     {
@@ -152,9 +152,9 @@ EXOPLANETS: list[dict] = [
             ],
         }},
         "crewNotes": {
-            "captain": "Close to home and tempting — but that little star has a temper.",
-            "scribe": "Within the habitable zone, yet frequent stellar flares threaten atmospheric retention.",
-            "computer": "Host star M5.5 V. Distance 4.2 light-years. Flare activity: high.",
+            "kirk": "Close to home and tempting — but that little star has a temper.",
+            "spock": "Within the habitable zone, yet frequent stellar flares threaten atmospheric retention.",
+            "ship": "Host star M5.5 V. Distance 4.2 light-years. Flare activity: high.",
         },
     },
     {
@@ -170,9 +170,9 @@ EXOPLANETS: list[dict] = [
             "pattern": ["△", "○", "□", "◇"],
         }},
         "crewNotes": {
-            "captain": "All ocean and cloud, no shore. Nowhere to put down roots.",
-            "scribe": "A dense volatile envelope and extreme pressure make surface habitation impractical.",
-            "computer": "Radius 2.73 Earth radii. Classification: mini-Neptune. Thick atmosphere probable.",
+            "kirk": "All ocean and cloud, no shore. Nowhere to put down roots.",
+            "spock": "A dense volatile envelope and extreme pressure make surface habitation impractical.",
+            "ship": "Radius 2.73 Earth radii. Classification: mini-Neptune. Thick atmosphere probable.",
         },
     },
 ]

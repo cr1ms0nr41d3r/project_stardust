@@ -21,8 +21,7 @@ export function newGameState() {
   return {
     stage: STAGES.BOOT,
 
-    // Stage 2 progress. A planet counts as "explored" once its mini-game is won
-    // AND its habitability fact has been read.
+    // Stage 2 progress. A planet counts as "explored" once its mini-game is won.
     planetsExplored: new Set(), // of planet ids
     chosenPlanetId: null, // the player's final habitable-planet pick
 

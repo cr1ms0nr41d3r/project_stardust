@@ -10,16 +10,20 @@ import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from controllers.chat_controller import (
+    normalize_character,
     run_agent_turn,
     speak_to_captain,
     speak_to_scribe,
     speak_to_ship,
     speak_to_navigator,
-    speak_to_chef
+    speak_to_chef,
 )
 from models.chat import ChatRequest, ChatResponse, GameEvent, GameReply
 
 router = APIRouter()
+
+_MAX_MESSAGE = 2000
+_HISTORY_TURNS = 8  # user+model pairs kept per crew member on this socket
 
 
 # Health check: GET http://localhost:8000/health confirms the server is alive.
@@ -80,41 +84,64 @@ def chat_with_chef(req: ChatRequest):
 @router.websocket("/ws")
 async def game_socket(websocket: WebSocket):
     await websocket.accept()  # Complete the handshake; the pipe is now open.
+    # Short-term memory for this connection only: {character: [{role, text}, ...]}
+    histories: dict[str, list] = {}
 
     try:
         while True:
             # 1. Wait for the player's message, e.g. {"character": "kirk",
-            #    "message": "Fire phasers at the Klingon ship!"}
+            #    "message": "Is this world too hot for a colony?"}
             data = await websocket.receive_json()
-            character = data.get("character", "Captain")
-            message = data.get("message", "")
-            # In Stage 2 the browser also sends which planet the player is
-            # viewing, so the crew can answer about that specific world.
+            if not isinstance(data, dict):
+                continue
+
+            character = normalize_character(data.get("character"))
+            message = str(data.get("message") or "").strip()
             planet = data.get("planet")
+            if planet is not None:
+                planet = str(planet).strip() or None
+
+            if character is None or not message:
+                await websocket.send_json(
+                    GameReply(
+                        character=str(data.get("character") or "crew"),
+                        text="Please choose a crew member and send a short message.",
+                    ).model_dump()
+                )
+                continue
+            if len(message) > _MAX_MESSAGE:
+                message = message[:_MAX_MESSAGE]
+
+            history = histories.get(character, [])
 
             # 2. Ask the crew member. The Gemini call is BLOCKING (it waits on
             #    the network), so we run it in a worker thread with
             #    `asyncio.to_thread` -- otherwise it would freeze the server for
             #    every other connection while we wait.
-            #    If Gemini errors (e.g. the free-tier rate limit of 5 requests
-            #    per minute -> HTTP 429), we catch it and turn it into a calm
-            #    in-world message instead of crashing the connection.
             try:
                 reply, events = await asyncio.to_thread(
-                    run_agent_turn, character, message, planet
+                    run_agent_turn, character, message, planet, history
                 )
             except Exception as exc:  # noqa: BLE001 -- keep the game alive
                 if "429" in str(exc) or "RESOURCE_EXHAUSTED" in str(exc):
                     reply = ("Subspace channel congested (API rate limit "
                              "reached). Please wait a moment and try again.")
                 else:
-                    reply = f"Communications error: {exc}"
+                    reply = "Communications error. Please try that again."
                 events = []
+
+            histories[character] = (history + [
+                {"role": "user", "text": message},
+                {"role": "model", "text": reply},
+            ])[-_HISTORY_TURNS * 2:]
 
             # 3. Send each action first so the animation kicks off...
             for event in events:
                 await websocket.send_json(
-                    GameEvent(action=event["action"], args=event["args"]).model_dump()
+                    GameEvent(
+                        action=event.get("action", ""),
+                        args=event.get("args") or {},
+                    ).model_dump()
                 )
 
             # 4. ...then the spoken line for the chat log.

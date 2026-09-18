@@ -30,7 +30,6 @@ const MANIFEST = {
   // for each into these paths on first run (if it can reach NASA); until then,
   // or if offline, the generated placeholder is drawn automatically.
   planet_trappist_e: "/static/assets/planets/trappist_e.png",
-  planet_verdanya: "/static/assets/planets/trappist_e.png",
   planet_kepler_452b: "/static/assets/planets/kepler_452b.png",
   planet_cnc_55e: "/static/assets/planets/cnc_55e.png",
   planet_hd_209458b: "/static/assets/planets/hd_209458b.png",
