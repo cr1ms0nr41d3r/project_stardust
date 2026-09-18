@@ -24,3 +24,27 @@ class ChatRequest(BaseModel):
 # Outgoing data: what we send back -- a single "reply" string.
 class ChatResponse(BaseModel):
     reply: str
+
+
+# ---------------------------------------------------------------------------
+# Models for the real-time game over the WebSocket.
+#
+# A WebSocket is a two-way pipe kept open between browser and server, so either
+# side can send messages at any time (unlike a normal request/response). We use
+# it so an ACTION (drawing a phaser beam) and the character's SPOKEN reply can
+# arrive as separate, live events.
+# ---------------------------------------------------------------------------
+
+# Server -> browser: one UI event = one thing to animate on the viewscreen.
+# (Sent whenever a tool the LLM called wants the screen to react.)
+class GameEvent(BaseModel):
+    type: str = "action"      # tells the browser this is an animation cue
+    action: str               # e.g. "fire_phaser" -> which animation to play
+    args: dict = {}           # details, e.g. {"target": "the Klingon ship"}
+
+
+# Server -> browser: the character's spoken line (shown in the chat log).
+class GameReply(BaseModel):
+    type: str = "reply"
+    character: str
+    text: str

@@ -1,0 +1,121 @@
+{
+  "_comment": "Six survey worlds. EXACTLY ONE has habitable:true (the correct final pick). The backend strips the `habitable` flag before showing anything to the AI crew, so they help the player reason without giving away the answer. Facts are real astronomy, lightly Trek-flavoured.",
+  "planets": [
+    {
+      "id": "inferna",
+      "name": "Inferna II",
+      "sprite": "planet_inferna",
+      "habitable": false,
+      "fact": "Inferna II is choked by a thick carbon-dioxide atmosphere that traps heat — a 'runaway greenhouse effect', the same process that bakes Venus to about 465°C. Being close to a star matters less than what your atmosphere does with the heat.",
+      "science": { "distance_au": 0.72, "surface_temp_c": 465, "atmosphere": "96% CO2, dense", "gravity_g": 0.9, "water": "none (boiled away)", "magnetosphere": "weak" },
+      "minigame": { "template": "sort", "config": {
+        "prompt": "Sort the atmospheric readings: is each gas safe to breathe or toxic?",
+        "bins": ["Breathable", "Toxic"],
+        "items": [
+          { "label": "Oxygen (O₂)", "bin": "Breathable" },
+          { "label": "Nitrogen (N₂)", "bin": "Breathable" },
+          { "label": "Carbon dioxide (CO₂)", "bin": "Toxic" },
+          { "label": "Sulfur dioxide (SO₂)", "bin": "Toxic" }
+        ]
+      }},
+      "crewNotes": {
+        "kirk": "A furnace world. My gut says we don't send anyone down there without a very good reason.",
+        "spock": "The greenhouse feedback here is self-reinforcing; surface temperatures preclude liquid water.",
+        "computer": "Surface temperature 465 degrees Celsius. Atmospheric pressure 92 times Earth normal."
+      }
+    },
+    {
+      "id": "borealis",
+      "name": "Borealis",
+      "sprite": "planet_borealis",
+      "habitable": false,
+      "fact": "Borealis sits far from its star with only a thin atmosphere, so its average surface temperature is roughly -60°C — much like Mars. With so little air pressure, any liquid water instantly freezes or boils into vapour and cannot pool on the surface.",
+      "science": { "distance_au": 1.52, "surface_temp_c": -63, "atmosphere": "thin CO2", "gravity_g": 0.38, "water": "frozen (ice caps)", "magnetosphere": "negligible" },
+      "minigame": { "template": "calibrate", "config": {
+        "prompt": "Lock the ice-penetrating scanner — stop the marker inside the green band.",
+        "targetMin": 40, "targetMax": 60, "speed": 0.12
+      }},
+      "crewNotes": {
+        "kirk": "Cold, empty, quiet. Feels like a place people would only pass through.",
+        "spock": "The atmospheric pressure is too low to sustain surface liquid water. Habitability is improbable.",
+        "computer": "Mean surface temperature negative 63 degrees Celsius. Atmospheric pressure 0.6 percent of Earth normal."
+      }
+    },
+    {
+      "id": "tidalis",
+      "name": "Tidalis",
+      "sprite": "planet_tidalis",
+      "habitable": false,
+      "fact": "Tidalis orbits a cool red-dwarf star so closely that it is 'tidally locked' — the same face always points at the star. One hemisphere is scorched daylight, the other frozen night, with only a thin twilight ring in between. Locked worlds are common but hard to live on.",
+      "science": { "distance_au": 0.04, "surface_temp_c": 120, "atmosphere": "unstable, storm-driven", "gravity_g": 1.1, "water": "trapped as ice on the night side", "magnetosphere": "moderate" },
+      "minigame": { "template": "sequence", "config": {
+        "prompt": "Re-tune the sensors: repeat the frequency pattern in order.",
+        "symbols": ["◇", "○", "△", "□"],
+        "pattern": ["○", "△", "○", "□"]
+      }},
+      "crewNotes": {
+        "kirk": "One side burns, the other freezes. A hard place to call home.",
+        "spock": "Only the narrow terminator zone is thermally tolerable; the habitable band is exceedingly small.",
+        "computer": "Rotation period equals orbital period. Day-side and night-side temperature differential exceeds 200 degrees Celsius."
+      }
+    },
+    {
+      "id": "helia",
+      "name": "Helia Prime",
+      "sprite": "planet_helia",
+      "habitable": false,
+      "fact": "Helia Prime has liquid water and a mild temperature, but almost no magnetic field. A planet's magnetosphere deflects the stellar wind; without it, radiation strips the atmosphere away and reaches the surface at dangerous levels — as happened to Mars over billions of years.",
+      "science": { "distance_au": 1.0, "surface_temp_c": 22, "atmosphere": "eroding, thinning", "gravity_g": 0.95, "water": "liquid (for now)", "magnetosphere": "almost none" },
+      "minigame": { "template": "sort", "config": {
+        "prompt": "Sort the shielding materials: which effectively block stellar radiation?",
+        "bins": ["Effective", "Ineffective"],
+        "items": [
+          { "label": "Planetary magnetic field", "bin": "Effective" },
+          { "label": "Thick atmosphere", "bin": "Effective" },
+          { "label": "Clear glass dome", "bin": "Ineffective" },
+          { "label": "Open surface", "bin": "Ineffective" }
+        ]
+      }},
+      "crewNotes": {
+        "kirk": "Looks inviting on the surface — but something about it feels exposed.",
+        "spock": "Absent a magnetosphere, atmospheric loss and surface radiation make long-term settlement inadvisable.",
+        "computer": "Planetary magnetic field strength below measurable threshold. Surface radiation 40 times Earth normal."
+      }
+    },
+    {
+      "id": "gravos",
+      "name": "Gravos",
+      "sprite": "planet_gravos",
+      "habitable": false,
+      "fact": "Gravos is a 'super-Earth' — much more massive than our world — so its surface gravity is about 2.6 times Earth's. Humanoids could barely stand, the crushing global ocean has no land, and the atmospheric pressure at depth would be lethal. Size and gravity are as important as temperature.",
+      "science": { "distance_au": 1.1, "surface_temp_c": 18, "atmosphere": "very dense", "gravity_g": 2.6, "water": "global deep ocean, no land", "magnetosphere": "strong" },
+      "minigame": { "template": "calibrate", "config": {
+        "prompt": "Fight the gravity well — stop the descending marker in the green band.",
+        "targetMin": 45, "targetMax": 62, "speed": 0.18
+      }},
+      "crewNotes": {
+        "kirk": "You'd feel every step like carrying two more of yourself. No, thank you.",
+        "spock": "Surface gravity of 2.6 g and a landless ocean render sustained humanoid habitation impractical.",
+        "computer": "Planetary mass 6.4 Earth masses. Surface gravity 2.6 g. No exposed landmass detected."
+      }
+    },
+    {
+      "id": "verdanya",
+      "name": "Verdanya",
+      "sprite": "planet_trappist_e",
+      "habitable": true,
+      "fact": "Verdanya orbits in its star's 'habitable zone' — the distance where it is neither too hot nor too cold for liquid water. It has a nitrogen-oxygen atmosphere, a protective magnetic field, moderate gravity and standing liquid water: the full checklist for a Class-M world.",
+      "science": { "distance_au": 1.0, "surface_temp_c": 16, "atmosphere": "78% N2, 21% O2", "gravity_g": 1.0, "water": "abundant liquid, oceans and land", "magnetosphere": "strong" },
+      "minigame": { "template": "sequence", "config": {
+        "prompt": "Confirm the biosphere scan: repeat the life-sign pattern in order.",
+        "symbols": ["🌱", "💧", "🌡️", "🧲"],
+        "pattern": ["💧", "🌱", "🌡️", "🧲"]
+      }},
+      "crewNotes": {
+        "kirk": "Blue skies, green land, room to breathe. This is the kind of world worth protecting.",
+        "spock": "All primary habitability criteria are satisfied: liquid water, breathable atmosphere, moderate gravity, magnetic shielding.",
+        "computer": "Classification: Class M. Atmosphere 78 percent nitrogen, 21 percent oxygen. Surface gravity 1.0 g."
+      }
+    }
+  ]
+}

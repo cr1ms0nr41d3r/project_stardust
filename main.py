@@ -9,15 +9,37 @@
 #   routers/     -> map URLs to controller functions (the web layer)
 #
 # A request flows: router -> controller -> tool -> back out as a response.
+#
+# The GAME itself is a browser front-end in `static/` (PixiJS sprites + plain
+# JS). This server mainly serves those files; the only live back-end feature is
+# the Stage 2 crew chat over the WebSocket (see routers/chat_router.py). Planet
+# facts for the crew are loaded by tools/knowledge.py from static/data/planets.json.
+# See README.md for the full picture.
 # ---------------------------------------------------------------------------
 
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from routers.chat_router import router
 
 # `app` is our FastAPI server. We attach the router's endpoints to it.
-app = FastAPI(title="Gemini Chatbot")
+app = FastAPI(title="Star Trek Bridge")
 app.include_router(router)
+
+# The game's front-end lives in the `static/` folder (HTML, CSS, JS). We expose
+# that whole folder at the "/static" URL so the browser can load style.css and
+# app.js, and we serve the page itself (index.html) at the root "/".
+STATIC_DIR = Path(__file__).parent / "static"
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/")
+def play():
+    """Serve the bridge UI -- open http://127.0.0.1:8000/ to play."""
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 # Lets the file be started directly with `python main.py`.

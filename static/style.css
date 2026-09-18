@@ -1,0 +1,378 @@
+/* static/style.css
+   -------------------------------------------------------------------------
+   The look of the whole game. Classic LCARS-ish Star Trek palette (orange +
+   blue on near-black). Layout is deliberately simple: a Pixi <canvas> holds
+   the sprite scene, and translucent HTML "panels" float on top of it for all
+   the buttons and text.
+   ------------------------------------------------------------------------- */
+
+:root {
+  --lcars-orange: #e14f11;
+  --lcars-blue: #008e9e;
+  --lcars-green: rgba(255, 245, 102, 0.749);
+  --lcars-red: #ff5566;
+  --panel: #384c8a;
+  --panel-solid: #030303;
+  --space: #17181b;
+  --ink: #e8ecff;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: #05060d;
+  color: var(--ink);
+  padding: 0 12px 16px;
+}
+
+h1 {
+  text-align: center;
+  color: var(--lcars-orange);
+  letter-spacing: 2px;
+  margin: 4px 0 14px;
+  font-weight: 600;
+}
+
+/* =================================================================
+   LAYOUT: three stacked areas, kept visually separate.
+     .viewscreen  -> the sprite canvas (top)
+     .status-bar  -> stage title + hint (middle strip)
+     .ui-panel    -> every interactable control + text (bottom)
+   ================================================================= */
+.game {
+  width: min(calc(100vw - 24px), 960px);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* THE VIEWSCREEN: shows ONLY the sprite scene, never covered by controls. */
+.viewscreen {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 52vh;
+  border: 3px solid var(--lcars-orange);
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: var(--space);
+}
+/* Force responsive sizing: Pixi sets an inline pixel size we must override, and
+   object-fit keeps the scene undistorted when the height is capped. */
+#stage-canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 52vh;
+  object-fit: contain;
+}
+
+/* The title/instruction strip that joins the two areas. Deliberately bold so
+   you always know which stage you're in and what to do. */
+.status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  padding: 11px 18px;
+  background: var(--panel-solid);
+  border-left: 2px solid var(--lcars-blue);
+  border-right: 2px solid var(--lcars-blue);
+}
+.stage-label {
+  color: var(--lcars-orange);
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 17px;
+}
+.stage-hint { color: var(--lcars-blue); opacity: 0.9; font-size: 14px; }
+
+/* THE CONTROL PANEL: all buttons/inputs/text render here, below the scene. */
+.ui-panel {
+  display: flex;
+  flex-direction: column;             /* stack panels top-to-bottom */
+  align-items: center;                /* centre narrow panels; full-width ones stay 100% */
+  gap: 14px;
+  padding: 18px;
+  background: #0b0d16;
+  border: 2px solid var(--lcars-blue);
+  border-top: none;
+  border-radius: 0 0 18px 18px;
+  min-height: 180px;
+}
+
+/* ===================== GENERIC PANELS + BUTTONS ===================== */
+.panel {
+  width: 100%;                         /* a lone panel fills the control area */
+  background: var(--panel);
+  border: 2px solid var(--lcars-blue);
+  border-radius: 14px;
+  padding: 14px;
+}
+.panel-title {
+  color: var(--lcars-orange);
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+.panel-subtitle {
+  color: var(--lcars-blue);
+  font-weight: 700;
+  margin: 12px 0 6px;
+  border-top: 1px solid rgba(153, 204, 255, 0.25);
+  padding-top: 8px;
+}
+
+.big-btn {
+  display: block;
+  width: 100%;
+  margin: 6px 0;
+  padding: 11px 14px;
+  border: none;
+  border-radius: 22px;
+  background: var(--lcars-orange);
+  color: #000;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.big-btn:hover { filter: brightness(1.1); }
+.big-btn:disabled { opacity: 0.4; cursor: default; }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--lcars-blue);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+/* ===================== CARD BATTLE (stages 1 & 3) ===================== */
+.battle-panel { width: min(560px, 100%); margin: 0 auto; }
+
+.bar { margin: 6px 0; }
+.bar-label { font-size: 13px; margin-bottom: 3px; }
+.bar-track {
+  position: relative;
+  height: 18px;
+  background: #0a0c14;
+  border: 1px solid #333a4d;
+  border-radius: 9px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  width: 100%;
+  transition: width 0.25s ease-out;
+}
+.bar-fill.enemy { background: linear-gradient(90deg, #b32, var(--lcars-red)); }
+.bar-fill.friendly { background: linear-gradient(90deg, #46c, var(--lcars-blue)); }
+.bar-fill::after {                     /* the "12/20" label centred on the track */
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #fff;
+  text-shadow: 0 0 3px #000;
+}
+
+.battle-log {
+  height: 120px;
+  overflow-y: auto;
+  margin: 10px 0;
+  padding: 8px;
+  background: #1c2d71;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.log-line { margin: 3px 0; }
+.log-line.player { color: var(--lcars-blue); }
+.log-line.enemy { color: var(--lcars-red); }
+.log-line.system { color: var(--lcars-orange); font-weight: 700; }
+
+.card-hand { display: flex; gap: 8px; flex-wrap: wrap; }
+.card {
+  flex: 1 1 110px;
+  min-width: 110px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid var(--lcars-blue);
+  background: #0d1120;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.card:hover { border-color: var(--lcars-orange); }
+.card.card-attack { border-color: rgb(167, 0, 0); }
+.card.card-defend { border-color: rgb(22, 183, 59); }
+.card.disabled { opacity: 0.4; cursor: default; }
+.card-name { font-weight: 700; margin-bottom: 4px; }
+.card-text { font-size: 12px; opacity: 0.85; }
+
+/* ===================== STAGE 2: PLANET HUB ===================== */
+.stage2 {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+  width: 100%;
+}
+@media (max-width: 760px) { .stage2 { grid-template-columns: 1fr; } }
+
+.planet-list { align-self: start; }
+.planet-item {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin: 4px 0;
+  padding: 9px 12px;
+  border: 1px solid var(--lcars-blue);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.planet-item.open { border-color: var(--lcars-orange); }
+.planet-item.explored { color: var(--lcars-green); border-color: var(--lcars-green); }
+.planet-item .tick { font-weight: 700; }
+
+.planet-fact { line-height: 1.5; font-size: 14px; }
+.science-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin: 8px 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+.sci-cell b { color: var(--lcars-blue); text-transform: capitalize; }
+.data-source { margin: 6px 0 2px; font-size: 11px; color: var(--lcars-green); opacity: 0.85; }
+
+.mg-done { color: var(--lcars-green); font-weight: 700; padding: 6px 0; }
+.mg-host { margin-top: 6px; }
+
+.choose-btn { width: min(520px, 100%); margin: 10px auto 0; }
+.chooser .choose-option { text-align: center; }
+
+/* ===================== CREW CHAT (stage 2) ===================== */
+.chat { margin-top: 4px; }
+.crew-row { display: flex; gap: 6px; margin-bottom: 6px; }
+.crew-btn {
+  flex: 1;
+  padding: 7px 4px;
+  border: 1px solid var(--lcars-blue);
+  border-radius: 18px;
+  background: transparent;
+  color: var(--lcars-blue);
+  cursor: pointer;
+  font-size: 12px;
+}
+.crew-btn.active { background: var(--lcars-orange); border-color: var(--lcars-orange); color: #000; font-weight: 700; }
+
+.chat-log {
+  height: 130px;
+  overflow-y: auto;
+  padding: 8px;
+  background: #0a0c14;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.chat-msg { margin: 5px 0; }
+.chat-msg.you b { color: var(--lcars-blue); }
+.chat-msg.crew b { color: var(--lcars-orange); }
+.chat-msg.system { color: var(--lcars-green); font-style: italic; font-size: 12px; }
+
+.chat-form { display: flex; gap: 6px; margin-top: 8px; }
+.chat-input {
+  flex: 1;
+  padding: 9px;
+  border-radius: 18px;
+  border: 1px solid var(--lcars-blue);
+  background: #0a0c14;
+  color: var(--ink);
+}
+.chat-send {
+  padding: 9px 14px;
+  border: none;
+  border-radius: 18px;
+  background: var(--lcars-orange);
+  color: #000;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ===================== MINI-GAMES ===================== */
+.mg-prompt { font-size: 14px; margin: 4px 0 10px; }
+.mg-feedback { margin-top: 8px; font-size: 13px; min-height: 18px; }
+
+/* sort */
+.mg-row { display: flex; align-items: center; justify-content: space-between; margin: 6px 0; gap: 8px; }
+.mg-item { font-size: 14px; }
+.mg-bins { display: flex; gap: 6px; }
+.mg-bin-btn {
+  padding: 6px 10px;
+  border: 1px solid var(--lcars-blue);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--lcars-blue);
+  cursor: pointer;
+  font-size: 12px;
+}
+.mg-bin-btn.picked { background: var(--lcars-orange); border-color: var(--lcars-orange); color: #000; font-weight: 700; }
+
+/* sequence */
+.mg-seq-display {
+  font-size: 26px;
+  letter-spacing: 6px;
+  text-align: center;
+  padding: 12px;
+  background: #425292;
+  border-radius: 10px;
+  min-height: 52px;
+}
+.mg-seq-pad { display: flex; gap: 8px; justify-content: center; margin: 10px 0; }
+.mg-seq-btn {
+  font-size: 24px;
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--lcars-blue);
+  border-radius: 12px;
+  background: #96989d;
+  cursor: pointer;
+}
+.mg-seq-btn:hover { border-color: var(--lcars-orange); }
+
+/* calibrate */
+.mg-track {
+  position: relative;
+  height: 26px;
+  margin: 14px 0;
+  background: #0a0c14;
+  border: 1px solid #333a4d;
+  border-radius: 13px;
+  overflow: hidden;
+}
+.mg-band { position: absolute; top: 0; bottom: 0; background: rgba(102, 255, 102, 0.3); border-left: 2px solid var(--lcars-green); border-right: 2px solid var(--lcars-green); }
+.mg-marker { position: absolute; top: -3px; width: 4px; height: 32px; background: var(--lcars-orange); box-shadow: 0 0 8px var(--lcars-orange); }
+
+/* ===================== DIALOGUE + ENDING (stage 3) ===================== */
+.finale-choice, .dialogue, .ending-panel { width: min(620px, 100%); margin: 0 auto; }
+.dialogue-text { line-height: 1.55; font-size: 15px; margin-bottom: 12px; }
+.dialogue-opt { text-align: left; }
+.ending-text { line-height: 1.6; font-size: 15px; margin-bottom: 14px; }

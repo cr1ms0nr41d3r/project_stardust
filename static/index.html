@@ -1,0 +1,61 @@
+<!-- static/index.html
+     ------------------------------------------------------------------------
+     The whole game runs on this one page, split into TWO SEPARATE areas so the
+     picture and the controls never cover each other:
+
+       1. THE VIEWSCREEN (top)  -- a PixiJS <canvas> (#stage-canvas) that draws
+          only the SPRITE SCENE: starfield, planets, ships, the enemy, effects.
+       2. THE CONTROL PANEL (below)  -- an HTML area (#ui-panel) that holds every
+          INTERACTABLE element and all text: cards, mini-game controls, the
+          planet fact panel, dialogue choices and the crew chat log.
+
+     Keeping them apart means you can always see the scene AND the controls at
+     once. Pixi does pictures; plain HTML does the clickable bits (styled by the
+     LCARS look in style.css).
+
+     The game logic lives in ES modules under /static/js/. `main.js` is the
+     entry point -- it boots Pixi and runs the three-stage state machine.
+     ------------------------------------------------------------------------ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aboard The Crusader — Away Mission</title>
+  <link rel="stylesheet" href="/static/style.css" />
+
+  <!-- An "import map" lets our ES modules write `import * as PIXI from "pixi.js"`
+       and have the browser fetch PixiJS straight from a CDN -- no build step,
+       no npm. The version is pinned so a CDN update can't silently break us. -->
+  <script type="importmap">
+    {
+      "imports": {
+        "pixi.js": "https://cdn.jsdelivr.net/npm/pixi.js@8.6.6/dist/pixi.min.mjs"
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Aboard The Crusader — Away Mission</h1>
+
+  <div class="game">
+    <!-- ===== THE VIEWSCREEN: sprites only, always fully visible ===== -->
+    <div class="viewscreen">
+      <canvas id="stage-canvas"></canvas>
+    </div>
+
+    <!-- ===== A prominent title/instruction bar between the two areas ===== -->
+    <div id="status-bar" class="status-bar">
+      <span id="stage-label" class="stage-label">Booting…</span>
+      <span id="stage-hint" class="stage-hint"></span>
+    </div>
+
+    <!-- ===== THE CONTROL PANEL: every button/input/text lives here ===== -->
+    <!-- Stage modules inject their controls into #ui-panel (kept separate from
+         the canvas above, so nothing ever overlaps the scene). -->
+    <div id="ui-panel" class="ui-panel"></div>
+  </div>
+
+  <script type="module" src="/static/js/main.js"></script>
+</body>
+</html>
